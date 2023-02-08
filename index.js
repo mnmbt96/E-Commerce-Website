@@ -9,6 +9,8 @@ window.addEventListener("DOMContentLoaded", function () {
   let cart_cnt_icon = document.getElementById("js-cart-cnt"); //カートの個数アイコン
   let subtotal = 0;
   let cart_cnt = 0;
+  let quantity = 0;
+  let quantityArr = [];
   let clickedItem;
 
   //Functions
@@ -42,22 +44,28 @@ window.addEventListener("DOMContentLoaded", function () {
 
   //Shopping Cart List
   const shoppingCartList = function ([item]) {
-    // console.log(item);
+    console.log(item);
     const shoppingCart = document.querySelector(".fa-cart-shopping");
 
     //Show subtotal
     subtotal += item.price;
     subtotal_price.innerHTML = `$${subtotal}`;
+    console.log(item.quantity);
 
-    const html = `
-     <li class="item-list">
-      <p class="item-name">${item.title}</p>
-      <p class="item-price">$${item.price}</p>
-      <img class="item-image" src="${item.image}" alt="${item.title}" >
-      <button class="btn-delete">Delete</button>
-     </li>
-   `;
-    cart_list.insertAdjacentHTML("beforeend", html);
+    if (item.quantity === 1) {
+      const html = `
+      <li class="item-list">
+        <p class="item-name">${item.title}</p>
+        <p class="item-price">$${item.price}</p>
+        <p class="item-quantity">${item.quantity}</p>
+        <img class="item-image" src="${item.image}" alt="${item.title}" >
+        <button class="btn-delete">Delete</button>
+      </li>`;
+      cart_list.insertAdjacentHTML("beforeend", html);
+    } else {
+      const item_quantity = document.querySelectorAll(".item-quantity");
+      item_quantity.forEach((quantity) => (quantity.innerHTML = item.quantity));
+    }
 
     //Open modal
     shoppingCart.addEventListener("click", openModal);
@@ -85,10 +93,12 @@ window.addEventListener("DOMContentLoaded", function () {
     cart_cnt_icon.parentNode.classList.add("hidden");
   };
 
+  if (buyItem()) {
+  }
+
   const buyItem = function () {
     btn_buy.addEventListener("click", function () {
       alert(`Thank you for shopping with us!! \n Your total: $${subtotal}`);
-      clearCart();
     });
   };
   buyItem();
@@ -100,30 +110,18 @@ window.addEventListener("DOMContentLoaded", function () {
       const res = await fetch("https://fakestoreapi.com/products");
       const data = await res.json();
 
-      //Create object element
-      let quantity = data.quantity;
+      //Add object property
+      data.forEach((item) => (item.quantity = quantity));
 
       //Render 3 new arrival items
       for (let i = 0; i < 3; i++) {
         renderItems("new_arrival", data[i].image, data[i].title, data[i].price);
       }
 
-      //Render all items
+      //Render the rest items
       for (let i = 3; i < data.length; i++) {
         renderItems("item", data[i].image, data[i].title, data[i].price);
       }
-
-      // //Search
-      // btn_search.addEventListener("click", function () {
-      //   const searchBarInput = document.querySelector(".search-bar").value;
-      //   let searchedItem = [];
-
-      //   if (data.includes(searchBarInput)) {
-      //     searchedItem.push(data);
-      //   } else {
-      //     console.log("not found");
-      //   }
-      // });
 
       //Add to Cart button
       const btn_addToCart = document.querySelectorAll(".btn-cart");
@@ -143,9 +141,11 @@ window.addEventListener("DOMContentLoaded", function () {
             title: data[i].title,
             price: data[i].price,
             image: data[i].image,
+            quantity: ++data[i].quantity,
           });
           //Show list
           shoppingCartList(clickedItem);
+          console.log(clickedItem);
         })
       );
     } catch (err) {
