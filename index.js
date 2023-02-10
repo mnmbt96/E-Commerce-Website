@@ -2,16 +2,13 @@ window.addEventListener("DOMContentLoaded", function () {
   const cart_modal = document.querySelector(".cart-modal");
   const cart_list = document.querySelector(".cart-list");
   const btn_close = document.querySelector(".close-modal");
-  const btn_search = document.querySelector(".btn-search");
   const btn_buy = document.querySelector(".btn-buy");
   const btn_delete_all = document.querySelector(".btn-delete-all");
   const subtotal_price = document.querySelector(".subtotal-price");
-  let cart_cnt_icon = document.getElementById("js-cart-cnt"); //カートの個数アイコン
+  let cart_cnt_icon = document.getElementById("js-cart-cnt");
   let subtotal = 0;
   let cart_cnt = 0;
-  let quantity = 0;
-  let quantityArr = [];
-  let clickedItem;
+  let itemData = [];
 
   //Functions
   // Display items
@@ -43,28 +40,46 @@ window.addEventListener("DOMContentLoaded", function () {
   };
 
   //Shopping Cart List
-  const shoppingCartList = function ([item]) {
-    console.log(item);
+  const shoppingCartList = function (item) {
     const shoppingCart = document.querySelector(".fa-cart-shopping");
+    const item_quantity = document.querySelectorAll(".item-quantity");
+    const item_price = document.querySelectorAll(".item-price");
 
     //Show subtotal
     subtotal += item.price;
-    subtotal_price.innerHTML = `$${subtotal}`;
-    console.log(item.quantity);
+    subtotal_price.innerHTML = `$${subtotal.toFixed(2)}`;
 
     if (item.quantity === 1) {
       const html = `
       <li class="item-list">
+        <img class="item-image" src="${item.image}" alt="${item.title}" >
         <p class="item-name">${item.title}</p>
         <p class="item-price">$${item.price}</p>
-        <p class="item-quantity">${item.quantity}</p>
-        <img class="item-image" src="${item.image}" alt="${item.title}" >
+        <div class="quantity-container">
+          <p class="item-quantity">${item.quantity}</p>
+        </div>
         <button class="btn-delete">Delete</button>
       </li>`;
       cart_list.insertAdjacentHTML("beforeend", html);
+      const addedItem = Array.from(cart_list.childNodes).at(-1);
+
+      const btn_delete = addedItem.querySelector(".btn-delete");
+
+      btn_delete.addEventListener("click", function () {
+        addedItem.remove();
+        subtotal -= item.price * item.quantity;
+        cart_cnt -= item.quantity;
+        cart_cnt_icon.innerHTML = cart_cnt;
+        if (subtotal !== 0) {
+          subtotal_price.innerHTML = `$${subtotal.toFixed(2)}`;
+        }
+        if (subtotal.toFixed(2) <= 0) clearCart();
+      });
     } else {
-      const item_quantity = document.querySelectorAll(".item-quantity");
       item_quantity.forEach((quantity) => (quantity.innerHTML = item.quantity));
+      item_price.forEach(
+        (price) => (price.innerHTML = item.price * item.quantity)
+      );
     }
 
     //Open modal
@@ -77,13 +92,10 @@ window.addEventListener("DOMContentLoaded", function () {
         closeModal();
       }
     });
-
-    const btn_delete = document.querySelectorAll(".btn-delete");
-    btn_delete.forEach((btn) => btn.addEventListener("click", function () {}));
   };
 
+  //Clear cart
   const clearCart = function () {
-    clickedItem = [];
     subtotal = 0;
     cart_cnt = 0;
     closeModal();
@@ -91,36 +103,52 @@ window.addEventListener("DOMContentLoaded", function () {
     subtotal_price.innerHTML = "";
     cart_modal.classList.add("hidden");
     cart_cnt_icon.parentNode.classList.add("hidden");
+    //Set quantity = 0;
+    itemData.forEach((item) => (item.quantity = 0));
   };
 
-  if (buyItem()) {
-  }
-
+  //Buy button
   const buyItem = function () {
     btn_buy.addEventListener("click", function () {
-      alert(`Thank you for shopping with us!! \n Your total: $${subtotal}`);
+      alert(
+        `Thank you for shopping with us!! \n Your total: $${subtotal.toFixed(
+          2
+        )}`
+      );
+      clearCart();
     });
   };
   buyItem();
 
   btn_delete_all.addEventListener("click", clearCart);
 
+  //Get data from Api
   const getItemsData = async function () {
     try {
       const res = await fetch("https://fakestoreapi.com/products");
-      const data = await res.json();
+      itemData = await res.json();
 
       //Add object property
-      data.forEach((item) => (item.quantity = quantity));
+      itemData.forEach((item) => (item.quantity = 0));
 
       //Render 3 new arrival items
       for (let i = 0; i < 3; i++) {
-        renderItems("new_arrival", data[i].image, data[i].title, data[i].price);
+        renderItems(
+          "new_arrival",
+          itemData[i].image,
+          itemData[i].title,
+          itemData[i].price
+        );
       }
 
       //Render the rest items
-      for (let i = 3; i < data.length; i++) {
-        renderItems("item", data[i].image, data[i].title, data[i].price);
+      for (let i = 3; i < itemData.length; i++) {
+        renderItems(
+          "item",
+          itemData[i].image,
+          itemData[i].title,
+          itemData[i].price
+        );
       }
 
       //Add to Cart button
@@ -128,7 +156,6 @@ window.addEventListener("DOMContentLoaded", function () {
       //Add to cart button eventListener
       btn_addToCart.forEach((btn, i) =>
         btn.addEventListener("click", function () {
-          clickedItem = [];
           //count up everytime Add to Cart buttons are clicked
           cart_cnt++;
           //remove hidden class when cart_cnt gets 1
@@ -137,15 +164,14 @@ window.addEventListener("DOMContentLoaded", function () {
           }
           cart_cnt_icon.innerHTML = cart_cnt;
 
-          clickedItem.push({
-            title: data[i].title,
-            price: data[i].price,
-            image: data[i].image,
-            quantity: ++data[i].quantity,
-          });
+          const data = {
+            title: itemData[i].title,
+            price: itemData[i].price,
+            image: itemData[i].image,
+            quantity: ++itemData[i].quantity,
+          };
           //Show list
-          shoppingCartList(clickedItem);
-          console.log(clickedItem);
+          shoppingCartList(data);
         })
       );
     } catch (err) {
