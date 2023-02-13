@@ -9,11 +9,13 @@ window.addEventListener("DOMContentLoaded", function () {
   let subtotal = 0;
   let cart_cnt = 0;
   let itemData = [];
+  let cartItem = [];
 
   //Functions
   // Display items
   const renderItems = function (section, img, title, price) {
     const sectionAttribute = document.querySelector(`.${section}`);
+
     const html = `
   <div class="card-deck ${section}">
    <div class="card mb-2 border border-0">
@@ -41,6 +43,15 @@ window.addEventListener("DOMContentLoaded", function () {
 
   //Shopping Cart List
   const shoppingCartList = function (item) {
+    if (item.quantity === 1) cartItem.push(item);
+    else
+      cartItem.map((product) =>
+        product.id === item.id ? { ...item } : product
+      );
+
+    // console.log(item);
+    // console.log(cartItem);
+
     const shoppingCart = document.querySelector(".fa-cart-shopping");
 
     //Show subtotal
@@ -48,30 +59,90 @@ window.addEventListener("DOMContentLoaded", function () {
     subtotal_price.innerHTML = `$${subtotal.toFixed(2)}`;
 
     if (item.quantity === 1) {
-      const html = `
-      <li class="item-list">
-        <img class="item-image" src="${item.image}" alt="${item.title}" >
-        <p class="item-name">${item.title}</p>
-        <p class="item-price">$${item.price}</p>
-        <div class="quantity-container">
-          <p class="item-quantity">${item.quantity}</p>
-        </div>
-        <button class="btn-delete">Delete</button>
-      </li>`;
-      cart_list.insertAdjacentHTML("beforeend", html);
-    } else {
-      const addedItem = Array.from(cart_list.childNodes).at(-1);
-      const newQuantity = addedItem.querySelector(".item-quantity");
-      const newPrice = addedItem.querySelector(".item-price");
+      //Create cart-list el <li class="item-list"></li>
+      const itemListEl = document.createElement("li");
+      itemListEl.classList.add("item-list");
+      itemListEl.classList.add(`id-${item.id}`);
+      cart_list.appendChild(itemListEl);
+      const item_lists = cart_list.querySelectorAll(".item-list");
+
+      // --------- Inside of item-list ---------------------------------------------------------
+      //Create image el
+      const itemImgEl = document.createElement("img");
+      itemImgEl.classList.add("item-image");
+      itemImgEl.src = item.image;
+      itemImgEl.alt = item.title;
+      item_lists.forEach((list) => list.appendChild(itemImgEl));
+
+      //Create title el <p class="item-name">${item.title}</p>
+      const itemNameEl = document.createElement("p");
+      itemNameEl.classList.add("item-name");
+      itemNameEl.innerHTML = item.title;
+      item_lists.forEach((list) => list.appendChild(itemNameEl));
+
+      //Create price el <p class="item-price id-${item.id}-price">$${item.price}</p>
+      const itemPriceEl = document.createElement("p");
+      itemPriceEl.classList.add("item-price");
+      itemPriceEl.classList.add(`id-${item.id}-price`);
+      itemPriceEl.innerHTML = `$${item.price}`;
+      item_lists.forEach((list) => list.appendChild(itemPriceEl));
+
+      //Create quantity div <div class="quantity-container"></div>
+      const quantityContainerEl = document.createElement("div");
+      quantityContainerEl.classList.add("quantity-container");
+      item_lists.forEach((list) => list.appendChild(quantityContainerEl));
+      const quantity_containers = document.querySelectorAll(
+        ".quantity-container"
+      );
+
+      //Create quantity el <p class="item-quantity id-${item.id}-quantity">${item.quantity}</p>
+      const itemQuantityEl = document.createElement("p");
+      itemQuantityEl.classList.add("item-quantity");
+      itemQuantityEl.classList.add(`id-${item.id}-quantity`);
+      itemQuantityEl.innerHTML = item.quantity;
+      quantity_containers.forEach((container) =>
+        container.appendChild(itemQuantityEl)
+      );
+
+      //Create delete button el <button class="btn-delete">Delete</button>
+      const btnDeleteEl = document.createElement("button");
+      btnDeleteEl.classList.add("btn-delete");
+      btnDeleteEl.innerHTML = "Delete";
+      item_lists.forEach((list) => list.appendChild(btnDeleteEl));
+
+      // ------------------------------------------------------------------------------------------
+
+      //   const html = `
+      //   <li class="item-list">
+      //     <img class="item-image" src="${item.image}" alt="${item.title}" >
+      //     <p class="item-name">${item.title}</p>
+      //     <p class="item-price id-${item.id}-price">$${item.price}</p>
+      //     <div class="quantity-container">
+      //       <p class="item-quantity id-${item.id}-quantity">${item.quantity}</p>
+      //     </div>
+      //     <button class="btn-delete">Delete</button>
+      //   </li>`;
+      //   cart_list.insertAdjacentHTML("beforeend", html);
+    }
+    if (item.quantity > 1) {
+      // const cartItem = Array.from(cart_list.childNodes).at(-1);
+      const newQuantity = document.querySelectorAll(`.id-${item.id}-quantity`);
+      const newPrice = document.querySelectorAll(`.id-${item.id}-price`);
       newQuantity.innerHTML = item.quantity;
-      newPrice.innerHTML = `$${item.price * item.quantity}`;
+      newPrice.innerHTML = `$${item.price}`;
+      newQuantity.forEach((quantity) => (quantity.innerHTML = item.quantity));
+      newPrice.forEach(
+        (price) => (price.innerHTML = `$${item.price * item.quantity}`)
+      );
     }
 
-    const addedItem = Array.from(cart_list.childNodes).at(-1);
-    const btn_delete = addedItem.querySelector(".btn-delete");
-
+    //Delete by 1
+    // const addedItem = Array.from(cart_list.childNodes).at(-1);
+    const itemListById = document.querySelector(`.id-${item.id}`);
+    const btn_delete = itemListById.querySelector(".btn-delete");
     btn_delete.addEventListener("click", function () {
-      addedItem.remove();
+      console.log(item);
+      itemListById.innerHTML = "";
       subtotal -= item.price;
       item.quantity = 0;
       cart_cnt--;
@@ -166,18 +237,17 @@ window.addEventListener("DOMContentLoaded", function () {
 
           //Update quantity
           itemData[i].quantity += 1;
-          itemData.map((product) =>
-            product.id === itemData.id ? { ...itemData } : product
-          );
 
-          const data = {
-            title: itemData[i].title,
-            price: itemData[i].price,
-            image: itemData[i].image,
-            quantity: itemData[i].quantity,
-          };
+          // const data = {
+          //   id: itemData[i].id,
+          //   title: itemData[i].title,
+          //   price: itemData[i].price,
+          //   image: itemData[i].image,
+          //   quantity: itemData[i].quantity,
+          // };
+
           //Show list
-          shoppingCartList(data);
+          shoppingCartList(itemData[i]);
         })
       );
     } catch (err) {
