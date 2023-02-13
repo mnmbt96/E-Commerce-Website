@@ -42,8 +42,6 @@ window.addEventListener("DOMContentLoaded", function () {
   //Shopping Cart List
   const shoppingCartList = function (item) {
     const shoppingCart = document.querySelector(".fa-cart-shopping");
-    const item_quantity = document.querySelectorAll(".item-quantity");
-    const item_price = document.querySelectorAll(".item-price");
 
     //Show subtotal
     subtotal += item.price;
@@ -61,26 +59,28 @@ window.addEventListener("DOMContentLoaded", function () {
         <button class="btn-delete">Delete</button>
       </li>`;
       cart_list.insertAdjacentHTML("beforeend", html);
-      const addedItem = Array.from(cart_list.childNodes).at(-1);
-
-      const btn_delete = addedItem.querySelector(".btn-delete");
-
-      btn_delete.addEventListener("click", function () {
-        addedItem.remove();
-        subtotal -= item.price * item.quantity;
-        cart_cnt -= item.quantity;
-        cart_cnt_icon.innerHTML = cart_cnt;
-        if (subtotal !== 0) {
-          subtotal_price.innerHTML = `$${subtotal.toFixed(2)}`;
-        }
-        if (subtotal.toFixed(2) <= 0) clearCart();
-      });
     } else {
-      item_quantity.forEach((quantity) => (quantity.innerHTML = item.quantity));
-      item_price.forEach(
-        (price) => (price.innerHTML = item.price * item.quantity)
-      );
+      const addedItem = Array.from(cart_list.childNodes).at(-1);
+      const newQuantity = addedItem.querySelector(".item-quantity");
+      const newPrice = addedItem.querySelector(".item-price");
+      newQuantity.innerHTML = item.quantity;
+      newPrice.innerHTML = `$${item.price * item.quantity}`;
     }
+
+    const addedItem = Array.from(cart_list.childNodes).at(-1);
+    const btn_delete = addedItem.querySelector(".btn-delete");
+
+    btn_delete.addEventListener("click", function () {
+      addedItem.remove();
+      subtotal -= item.price;
+      item.quantity = 0;
+      cart_cnt--;
+      cart_cnt_icon.innerHTML = cart_cnt;
+      console.log(itemData);
+      if (cart_cnt !== 0) {
+        subtotal_price.innerHTML = `$${subtotal.toFixed(2)}`;
+      } else clearCart();
+    });
 
     //Open modal
     shoppingCart.addEventListener("click", openModal);
@@ -164,11 +164,17 @@ window.addEventListener("DOMContentLoaded", function () {
           }
           cart_cnt_icon.innerHTML = cart_cnt;
 
+          //Update quantity
+          itemData[i].quantity += 1;
+          itemData.map((product) =>
+            product.id === itemData.id ? { ...itemData } : product
+          );
+
           const data = {
             title: itemData[i].title,
             price: itemData[i].price,
             image: itemData[i].image,
-            quantity: ++itemData[i].quantity,
+            quantity: itemData[i].quantity,
           };
           //Show list
           shoppingCartList(data);
