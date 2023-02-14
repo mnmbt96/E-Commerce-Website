@@ -133,6 +133,8 @@ window.addEventListener("DOMContentLoaded", function () {
         subtotal += item.price;
         subtotal_price.innerHTML = `$${subtotal.toFixed(2)}`;
         item.quantity++;
+        cart_cnt++;
+        cart_cnt_icon.innerHTML = cart_cnt;
         changeQty();
       });
 
@@ -161,18 +163,25 @@ window.addEventListener("DOMContentLoaded", function () {
     }
 
     //Delete by item
-    const itemListById = document.querySelector(`.id-${item.id}`);
-    const btn_delete = itemListById.querySelector(".btn-delete");
-    btn_delete.addEventListener("click", function () {
-      itemListById.innerHTML = "";
-      subtotal -= item.price;
-      item.quantity = 0;
-      cart_cnt--;
-      cart_cnt_icon.innerHTML = cart_cnt;
-      console.log(itemData);
-      if (cart_cnt !== 0) {
-        subtotal_price.innerHTML = `$${subtotal.toFixed(2)}`;
-      } else clearCart();
+    itemData.forEach((data) => {
+      if (data.id === item.id) {
+        console.log(data);
+        const itemListById = document.querySelector(`.id-${item.id}`);
+        const btn_delete = itemListById.querySelector(".btn-delete");
+
+        btn_delete.addEventListener("click", function () {
+          itemListById.innerHTML = "";
+          subtotal -= data.price * data.quantity;
+          cart_cnt -= data.quantity;
+          item.quantity = 0;
+          cart_cnt_icon.innerHTML = cart_cnt;
+          if (cart_cnt !== 0) {
+            subtotal_price.innerHTML = `$${subtotal.toFixed(2)}`;
+          } else clearCart();
+        });
+      } else {
+        return;
+      }
     });
 
     //Open modal
@@ -260,20 +269,12 @@ window.addEventListener("DOMContentLoaded", function () {
           //Update quantity
           itemData[i].quantity += 1;
 
-          // const data = {
-          //   id: itemData[i].id,
-          //   title: itemData[i].title,
-          //   price: itemData[i].price,
-          //   image: itemData[i].image,
-          //   quantity: itemData[i].quantity,
-          // };
-
           //Show list
           shoppingCartList(itemData[i]);
         })
       );
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
   getItemsData();
