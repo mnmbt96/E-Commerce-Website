@@ -61,7 +61,7 @@ window.addEventListener("DOMContentLoaded", function () {
       itemListEl.classList.add("item-list");
       itemListEl.classList.add(`id-${item.id}`);
       cart_list.appendChild(itemListEl);
-      const item_list = cart_list.querySelector(`.id-${item.id}`);
+      const itemListById = document.querySelector(`.id-${item.id}`);
 
       // --------- Inside of item-list ---------------------------------------------------------
       //Create image el
@@ -69,25 +69,27 @@ window.addEventListener("DOMContentLoaded", function () {
       itemImgEl.classList.add("item-image");
       itemImgEl.src = item.image;
       itemImgEl.alt = item.title;
-      item_list.appendChild(itemImgEl);
+      itemListById.appendChild(itemImgEl);
 
       //Create title el <p class="item-name">${item.title}</p>
       const itemNameEl = document.createElement("p");
       itemNameEl.classList.add("item-name");
       itemNameEl.innerHTML = item.title;
-      item_list.appendChild(itemNameEl);
+      itemListById.appendChild(itemNameEl);
 
       //Create price el <p class="item-price id-${item.id}-price">$${item.price}</p>
       const itemPriceEl = document.createElement("p");
       itemPriceEl.classList.add("item-price");
       itemPriceEl.innerHTML = `$${item.price}`;
-      item_list.appendChild(itemPriceEl);
+      itemListById.appendChild(itemPriceEl);
 
       //Create quantity div <div class="quantity-container id-${item.id}"></div>
       const quantityContainerEl = document.createElement("div");
       quantityContainerEl.classList.add("quantity-container");
-      item_list.appendChild(quantityContainerEl);
-      const quantity_container = item_list.querySelector(".quantity-container");
+      itemListById.appendChild(quantityContainerEl);
+      const quantity_container = itemListById.querySelector(
+        ".quantity-container"
+      );
 
       //-----------------------  Inside of quantity div   -----------------------//
       //Create minus symbol button to decrease the quantity
@@ -144,7 +146,7 @@ window.addEventListener("DOMContentLoaded", function () {
       const btnDeleteEl = document.createElement("button");
       btnDeleteEl.classList.add("btn-delete");
       btnDeleteEl.innerHTML = "Delete";
-      item_list.appendChild(btnDeleteEl);
+      itemListById.appendChild(btnDeleteEl);
 
       // ------------------------------------------------------------------------------------------ //
     }
@@ -153,9 +155,9 @@ window.addEventListener("DOMContentLoaded", function () {
     }
 
     function changeQty() {
-      const item_list = cart_list.querySelector(`.id-${item.id}`);
-      const newQuantity = item_list.querySelector(`.item-quantity`);
-      const newPrice = item_list.querySelector(`.item-price`);
+      const itemListById = cart_list.querySelector(`.id-${item.id}`);
+      const newQuantity = itemListById.querySelector(`.item-quantity`);
+      const newPrice = itemListById.querySelector(`.item-price`);
       newQuantity.innerHTML = item.quantity;
       newPrice.innerHTML = `$${item.price}`;
       newQuantity.innerHTML = item.quantity;
@@ -165,7 +167,6 @@ window.addEventListener("DOMContentLoaded", function () {
     //Delete by item
     itemData.forEach((data) => {
       if (data.id === item.id) {
-        console.log(data);
         const itemListById = document.querySelector(`.id-${item.id}`);
         const btn_delete = itemListById.querySelector(".btn-delete");
 
