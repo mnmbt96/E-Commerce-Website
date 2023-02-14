@@ -49,9 +49,6 @@ window.addEventListener("DOMContentLoaded", function () {
         product.id === item.id ? { ...item } : product
       );
 
-    // console.log(item);
-    // console.log(cartItem);
-
     const shoppingCart = document.querySelector(".fa-cart-shopping");
 
     //Show subtotal
@@ -64,7 +61,7 @@ window.addEventListener("DOMContentLoaded", function () {
       itemListEl.classList.add("item-list");
       itemListEl.classList.add(`id-${item.id}`);
       cart_list.appendChild(itemListEl);
-      const item_lists = cart_list.querySelectorAll(".item-list");
+      const item_list = cart_list.querySelector(`.id-${item.id}`);
 
       // --------- Inside of item-list ---------------------------------------------------------
       //Create image el
@@ -72,76 +69,101 @@ window.addEventListener("DOMContentLoaded", function () {
       itemImgEl.classList.add("item-image");
       itemImgEl.src = item.image;
       itemImgEl.alt = item.title;
-      item_lists.forEach((list) => list.appendChild(itemImgEl));
+      item_list.appendChild(itemImgEl);
 
       //Create title el <p class="item-name">${item.title}</p>
       const itemNameEl = document.createElement("p");
       itemNameEl.classList.add("item-name");
       itemNameEl.innerHTML = item.title;
-      item_lists.forEach((list) => list.appendChild(itemNameEl));
+      item_list.appendChild(itemNameEl);
 
       //Create price el <p class="item-price id-${item.id}-price">$${item.price}</p>
       const itemPriceEl = document.createElement("p");
       itemPriceEl.classList.add("item-price");
-      itemPriceEl.classList.add(`id-${item.id}-price`);
       itemPriceEl.innerHTML = `$${item.price}`;
-      item_lists.forEach((list) => list.appendChild(itemPriceEl));
+      item_list.appendChild(itemPriceEl);
 
-      //Create quantity div <div class="quantity-container"></div>
+      //Create quantity div <div class="quantity-container id-${item.id}"></div>
       const quantityContainerEl = document.createElement("div");
       quantityContainerEl.classList.add("quantity-container");
-      item_lists.forEach((list) => list.appendChild(quantityContainerEl));
-      const quantity_containers = document.querySelectorAll(
-        ".quantity-container"
-      );
+      item_list.appendChild(quantityContainerEl);
+      const quantity_container = item_list.querySelector(".quantity-container");
+
+      //-----------------------  Inside of quantity div   -----------------------//
+      //Create minus symbol button to decrease the quantity
+      const minusSymbolEl = document.createElement("p");
+      minusSymbolEl.classList.add("btn-minus");
+      minusSymbolEl.innerHTML = "	&minus;";
+      quantity_container.appendChild(minusSymbolEl);
+
+      const btn_minus = quantity_container.querySelector(".btn-minus");
+      btn_minus.addEventListener("click", function () {
+        if (item.quantity > 0) {
+          //Show subtotal
+          subtotal -= item.price;
+          subtotal_price.innerHTML = `$${subtotal.toFixed(2)}`;
+          item.quantity--;
+          cart_cnt--;
+          cart_cnt_icon.innerHTML = cart_cnt;
+          changeQty();
+        }
+        if (item.quantity === 0) {
+          itemListById.innerHTML = "";
+        }
+        if (cart_cnt === 0) {
+          clearCart();
+        }
+      });
 
       //Create quantity el <p class="item-quantity id-${item.id}-quantity">${item.quantity}</p>
       const itemQuantityEl = document.createElement("p");
       itemQuantityEl.classList.add("item-quantity");
-      itemQuantityEl.classList.add(`id-${item.id}-quantity`);
       itemQuantityEl.innerHTML = item.quantity;
-      quantity_containers.forEach((container) =>
-        container.appendChild(itemQuantityEl)
-      );
+      itemQuantityEl.type = "number";
+      quantity_container.appendChild(itemQuantityEl);
+
+      //Create plus symbol button to increase the quantity
+      const plusSymbolEl = document.createElement("p");
+      plusSymbolEl.classList.add("btn-plus");
+      plusSymbolEl.innerHTML = "	&plus;";
+      quantity_container.appendChild(plusSymbolEl);
+
+      const btn_plus = quantity_container.querySelector(".btn-plus");
+      btn_plus.addEventListener("click", function () {
+        subtotal += item.price;
+        subtotal_price.innerHTML = `$${subtotal.toFixed(2)}`;
+        item.quantity++;
+        changeQty();
+      });
+
+      //-------------------------------------------------------------------------//
 
       //Create delete button el <button class="btn-delete">Delete</button>
       const btnDeleteEl = document.createElement("button");
       btnDeleteEl.classList.add("btn-delete");
       btnDeleteEl.innerHTML = "Delete";
-      item_lists.forEach((list) => list.appendChild(btnDeleteEl));
+      item_list.appendChild(btnDeleteEl);
 
-      // ------------------------------------------------------------------------------------------
-
-      //   const html = `
-      //   <li class="item-list">
-      //     <img class="item-image" src="${item.image}" alt="${item.title}" >
-      //     <p class="item-name">${item.title}</p>
-      //     <p class="item-price id-${item.id}-price">$${item.price}</p>
-      //     <div class="quantity-container">
-      //       <p class="item-quantity id-${item.id}-quantity">${item.quantity}</p>
-      //     </div>
-      //     <button class="btn-delete">Delete</button>
-      //   </li>`;
-      //   cart_list.insertAdjacentHTML("beforeend", html);
+      // ------------------------------------------------------------------------------------------ //
     }
     if (item.quantity > 1) {
-      // const cartItem = Array.from(cart_list.childNodes).at(-1);
-      const newQuantity = document.querySelectorAll(`.id-${item.id}-quantity`);
-      const newPrice = document.querySelectorAll(`.id-${item.id}-price`);
-      newQuantity.innerHTML = item.quantity;
-      newPrice.innerHTML = `$${item.price}`;
-      newQuantity.forEach((quantity) => (quantity.innerHTML = item.quantity));
-      newPrice.forEach(
-        (price) => (price.innerHTML = `$${item.price * item.quantity}`)
-      );
+      changeQty();
     }
 
-    //Delete by 1
-    // const addedItem = Array.from(cart_list.childNodes).at(-1);
+    function changeQty() {
+      const item_list = cart_list.querySelector(`.id-${item.id}`);
+      const newQuantity = item_list.querySelector(`.item-quantity`);
+      const newPrice = item_list.querySelector(`.item-price`);
+      newQuantity.innerHTML = item.quantity;
+      newPrice.innerHTML = `$${item.price}`;
+      newQuantity.innerHTML = item.quantity;
+      newPrice.innerHTML = `$${item.price * item.quantity}`;
+    }
+
+    //Delete by item
     const itemListById = document.querySelector(`.id-${item.id}`);
     const btn_delete = itemListById.querySelector(".btn-delete");
     btn_delete.addEventListener("click", function () {
-      console.log(item);
       itemListById.innerHTML = "";
       subtotal -= item.price;
       item.quantity = 0;
